@@ -159,6 +159,9 @@ function commitEvolution() {
   clearTimeout(congratsTimer);
   congratsTimer = setTimeout(() => { if (!cinematic) showBubble(html, 5000); }, 1500);
   notify('축하합니다!', text);
+  // 이제야 그 모습을 보여줬으니 도감도 여기서 따라온다. 다음 폴링을 기다리면
+  // 진화 직후에 앱을 끈 사람의 기록이 통째로 사라진다.
+  persistDex();
   updateTray(); pushState(); pushPanel();
 }
 
@@ -230,7 +233,9 @@ function syncDex() {
   if (active && !isCustomId(id) && lastPercent != null) {
     if (dexFloorId !== id) { dexFloorId = id; dexFloor = null; }
     dexFloor = nextFloor(active, lastPercent, dexFloor);
-    if (mergeStamps(cfg.dex.caught, reachedSlugs(active, lastPercent, dexFloor), now)) changed = true;
+    // 기록은 화면을 따라간다 — 진화를 대기시키는 동안 도감이 먼저 앞서가면 안 된다
+    const shown = shownIdx == null ? -1 : shownIdx;
+    if (mergeStamps(cfg.dex.caught, reachedSlugs(active, lastPercent, dexFloor, shown), now)) changed = true;
   }
   return changed;
 }
